@@ -1,0 +1,101 @@
+datasource db {
+  provider = "sqlite" // change to "postgresql" for Postgres/Supabase
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+enum City {
+  CHANDIGARH @map("Chandigarh")
+  MOHALI     @map("Mohali")
+  ZIRAKPUR   @map("Zirakpur")
+  PANCHKULA  @map("Panchkula")
+  OTHER      @map("Other")
+}
+
+enum PropertyType {
+  APARTMENT @map("Apartment")
+  VILLA     @map("Villa")
+  PLOT      @map("Plot")
+  OFFICE    @map("Office")
+  RETAIL    @map("Retail")
+}
+
+enum BHK {
+  ONE    @map("1")
+  TWO    @map("2")
+  THREE  @map("3")
+  FOUR   @map("4")
+  STUDIO @map("Studio")
+}
+
+enum Purpose {
+  BUY  @map("Buy")
+  RENT @map("Rent")
+}
+
+enum Timeline {
+  ZERO_TO_THREE @map("0-3m")
+  THREE_TO_SIX  @map("3-6m")
+  MORE_THAN_SIX @map(">6m")
+  EXPLORING     @map("Exploring")
+}
+
+enum Source {
+  WEBSITE  @map("Website")
+  REFERRAL @map("Referral")
+  WALKIN   @map("Walk-in")
+  CALL     @map("Call")
+  OTHER    @map("Other")
+}
+
+enum Status {
+  NEW         @map("New")
+  QUALIFIED   @map("Qualified")
+  CONTACTED   @map("Contacted")
+  VISITED     @map("Visited")
+  NEGOTIATION @map("Negotiation")
+  CONVERTED   @map("Converted")
+  DROPPED     @map("Dropped")
+}
+
+model User {
+  id     String  @id @default(uuid())
+  email  String  @unique
+  name   String?
+  buyers Buyer[]
+}
+
+model Buyer {
+  id           String         @id @default(uuid())
+  fullName     String
+  email        String?
+  phone        String
+  city         City
+  propertyType PropertyType
+  bhk          BHK?
+  purpose      Purpose
+  budgetMin    Int?
+  budgetMax    Int?
+  timeline     Timeline
+  source       Source
+  status       Status         @default(NEW)
+  notes        String?
+  tags         Json? // JSON array of strings
+  owner        User           @relation(fields: [ownerId], references: [id])
+  ownerId      String
+  createdAt    DateTime       @default(now())
+  updatedAt    DateTime       @updatedAt
+  history      BuyerHistory[]
+}
+
+model BuyerHistory {
+  id        String   @id @default(uuid())
+  buyer     Buyer    @relation(fields: [buyerId], references: [id])
+  buyerId   String
+  changedBy String? // user id who changed (optional)
+  changedAt DateTime @default(now())
+  diff      Json // JSON of changed fields { before: {...}, after: {...} }
+}
