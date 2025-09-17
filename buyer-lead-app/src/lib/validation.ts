@@ -1,28 +1,72 @@
 import { z } from "zod";
 
+
 export const buyerSchema = z.object({
-  fullName: z.string().min(2, "Name must be at least 2 characters"),
-  email: z.string().email("Invalid email").optional().or(z.literal("")),
-  phone: z.string().regex(/^\d{10,15}$/, "Phone must be 10–15 digits"),
-  city: z.string().optional(),
-  propertyType: z.enum(["Apartment", "Villa", "Plot", "Other"]),
-  bhk: z.number().int().optional(),
-  purpose: z.string().optional(),
-  budgetMin: z.number().int().optional(),
-  budgetMax: z.number().int().optional(),
-  timeline: z.string().optional(),
-  source: z.string().optional(),
+  fullName: z.string().min(1, "Full name is required"),
+  phone: z.string().min(1, "Phone is required"),
+  email: z.string().email("Invalid email").optional(),
+
+  city: z.enum([
+    "CHANDIGARH",
+    "MOHALI",
+    "ZIRAKPUR",
+    "PANCHKULA",
+    "OTHER",
+  ]),
+
+  propertyType: z.enum([
+    "APARTMENT",
+    "VILLA",
+    "PLOT",
+    "OFFICE",
+    "RETAIL",
+  ]),
+
+  purpose: z.enum(["BUY", "RENT"]),
+
+  bhk: z.enum(["ONE", "TWO", "THREE", "FOUR", "STUDIO"]).optional(),
+
+  budgetMin: z.number().optional(),
+  budgetMax: z.number().optional(),
+
+  timeline: z.enum([
+    "ZERO_TO_THREE",
+    "THREE_TO_SIX",
+    "MORE_THAN_SIX",
+    "EXPLORING",
+  ]).default("EXPLORING"),
+
+  source: z.enum([
+    "WEBSITE",
+    "REFERRAL",
+    "WALKIN",
+    "CALL",
+    "OTHER",
+  ]).default("OTHER"),
+
+  status: z.enum([
+    "NEW",
+    "QUALIFIED",
+    "CONTACTED",
+    "VISITED",
+    "NEGOTIATION",
+    "CONVERTED",
+    "DROPPED",
+  ]).default("NEW"),
+
   notes: z.string().optional(),
+
   tags: z.array(z.string()).optional(),
-}).refine((data) => {
-  if ((data.propertyType === "Apartment" || data.propertyType === "Villa") && !data.bhk) {
-    return false;
+
+  updatedAt: z.date().optional(),
+});
+
+// ✅ Type helper for forms
+export type BuyerFormData = z.infer<typeof buyerSchema>;
+// Helper to validate budget
+export const validateBudget = (budgetMin?: number, budgetMax?: number) => {
+  if (budgetMin !== undefined && budgetMax !== undefined && budgetMax < budgetMin) {
+    return "Maximum budget must be greater than or equal to minimum budget";
   }
-  return true;
-}, { message: "BHK is required for Apartment/Villa", path: ["bhk"] })
-.refine((data) => {
-  if (data.budgetMin && data.budgetMax) {
-    return data.budgetMax >= data.budgetMin;
-  }
-  return true;
-}, { message: "Max budget must be >= Min budget", path: ["budgetMax"] });
+  return null;
+};
