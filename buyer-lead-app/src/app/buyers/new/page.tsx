@@ -1,10 +1,11 @@
 "use client";
 
-import { useForm } from "react-hook-form";
+import { useForm, SubmitHandler  } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useState } from "react";
 import { buyerSchema } from "@/lib/validation";
 import { z } from "zod";
+import { City, PropertyType, Purpose, Timeline, Source, BHK } from "@prisma/client";
 
 type BuyerFormData = z.infer<typeof buyerSchema>;
 
@@ -14,11 +15,16 @@ export default function NewBuyerPage() {
 
   const { register, handleSubmit, watch, formState: { errors } } = useForm<BuyerFormData>({
     resolver: zodResolver(buyerSchema),
+    defaultValues: {
+    status: "NEW",   // match the schema defaults
+    source: "OTHER",
+    timeline: "EXPLORING",
+  }
   });
 
   const propertyType = watch("propertyType");
 
-  const onSubmit = async (data: BuyerFormData) => {
+  const onSubmit: SubmitHandler<BuyerFormData> = async (data)  => {
     try {
       const res = await fetch("/api/buyers", {
         method: "POST",
@@ -67,33 +73,49 @@ export default function NewBuyerPage() {
         </div>
 
         <div>
-          <label>City</label>
-          <input {...register("city")} className="input" />
+          <label>City*</label>
+          <select {...register("city")} className="input">
+            <option value="">Select</option>
+            {Object.values(City).map(c => (
+              <option key={c} value={c}>{c}</option>
+            ))}
+          </select>
+          {errors.city && <p className="text-red-500">{errors.city.message}</p>}
         </div>
 
         <div>
           <label>Property Type*</label>
           <select {...register("propertyType")} className="input">
             <option value="">Select</option>
-            <option value="Apartment">Apartment</option>
-            <option value="Villa">Villa</option>
-            <option value="Plot">Plot</option>
-            <option value="Other">Other</option>
+            {Object.values(PropertyType).map(p => (
+              <option key={p} value={p}>{p}</option>
+            ))}
           </select>
           {errors.propertyType && <p className="text-red-500">{errors.propertyType.message}</p>}
         </div>
 
-        {(propertyType === "Apartment" || propertyType === "Villa") && (
+        {(propertyType === "APARTMENT" || propertyType === "VILLA") && (
           <div>
             <label>BHK*</label>
-            <input type="number" {...register("bhk", { valueAsNumber: true })} className="input" />
+            <select {...register("bhk")} className="input">
+              <option value="">Select</option>
+              {Object.values(BHK).map(b => (
+                <option key={b} value={b}>{b}</option>
+              ))}
+            </select>
             {errors.bhk && <p className="text-red-500">{errors.bhk.message}</p>}
           </div>
         )}
 
         <div>
-          <label>Purpose</label>
-          <input {...register("purpose")} className="input" />
+          <label>Purpose*</label>
+          <select {...register("purpose")} className="input">
+            <option value="">Select</option>
+            {Object.values(Purpose).map(p => (
+              <option key={p} value={p}>{p}</option>
+            ))}
+          </select>
+          {errors.purpose && <p className="text-red-500">{errors.purpose.message}</p>}
         </div>
 
         <div>
@@ -108,13 +130,25 @@ export default function NewBuyerPage() {
         </div>
 
         <div>
-          <label>Timeline</label>
-          <input {...register("timeline")} className="input" />
+          <label>Timeline*</label>
+          <select {...register("timeline")} className="input">
+            <option value="">Select</option>
+            {Object.values(Timeline).map(t => (
+              <option key={t} value={t}>{t}</option>
+            ))}
+          </select>
+          {errors.timeline && <p className="text-red-500">{errors.timeline.message}</p>}
         </div>
 
         <div>
-          <label>Source</label>
-          <input {...register("source")} className="input" />
+          <label>Source*</label>
+          <select {...register("source")} className="input">
+            <option value="">Select</option>
+            {Object.values(Source).map(s => (
+              <option key={s} value={s}>{s}</option>
+            ))}
+          </select>
+          {errors.source && <p className="text-red-500">{errors.source.message}</p>}
         </div>
 
         <div>
@@ -124,9 +158,12 @@ export default function NewBuyerPage() {
 
         <div>
           <label>Tags (comma separated)</label>
-          <input {...register("tags", {
-            setValueAs: v => v.split(",").map((t: string) => t.trim())
-          })} className="input" />
+          <input
+            {...register("tags", {
+              setValueAs: v => v ? v.split(",").map((t: string) => t.trim()) : [],
+            })}
+            className="input"
+          />
         </div>
 
         <button type="submit" className="bg-blue-600 text-white px-4 py-2 rounded">

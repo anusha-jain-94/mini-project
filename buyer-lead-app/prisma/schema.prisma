@@ -98,4 +98,5 @@ model BuyerHistory {
   changedBy String? // user id who changed (optional)
   changedAt DateTime @default(now())
   diff      Json // JSON of changed fields { before: {...}, after: {...} }
+   createdAt DateTime @default(now())
 }
