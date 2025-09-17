@@ -21,7 +21,7 @@ export default function LoginPage() {
       setError("Invalid credentials");
     } else {
       // Redirect to dashboard after login
-      window.location.href = "/buyers/new";
+      window.location.href = "/buyers";
     }
   };
 
